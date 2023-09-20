@@ -124,56 +124,58 @@ class PolygonClipper:
 
 # GitHub link for this function: https://github.com/mhdadk/sutherland-hodgman/blob/main/SH.py
 
-    def cross_product(point1, point2, ref):
-        """
-        Calculates cross product of two points in order w.r.t. to a reference point
-        """
-        x1, x2 = point1[0] - ref[0], point2[0] - ref[0]
-        y1, y2 = point1[1] - ref[1], point2[1] - ref[1]
+def cross_product(point1, point2, ref):
+    """
+    Calculates cross product of two points in order w.r.t. to a reference point
+    """
+    x1, x2 = point1[0] - ref[0], point2[0] - ref[0]
+    y1, y2 = point1[1] - ref[1], point2[1] - ref[1]
 
-        return x1*y2 - x2*y1
-
-
-    def find_centre(polygon):
-        """
-        finds centroid of given convex polygon
-        """
-        centre = [0,0]
-        for i in range(len(polygon)):
-            centre += polygon[i]
-
-        centre[0], centre[1] = centre[0]/len(polygon), centre[1]/len(polygon)
-
-        return centre
+    return x1*y2 - x2*y1
 
 
-    def polyarea(polygon):
-        """
-        finds area of given convex polygon
-        """
-        area = 0
-        centre = polygon[0]
-        for i in range(len(polygon)-1):
-            area += cross_product(polygon[i], polygon[i+1], centre)
+def find_centre(polygon):
+    """
+    finds centroid of given convex polygon
+    """
+    centre = [0,0]
+    for i in range(len(polygon)):
+        centre += polygon[i]
 
-        return abs(area)
+    centre[0], centre[1] = centre[0]/len(polygon), centre[1]/len(polygon)
+
+    return centre
 
 
-    def rot_coords(rot_centre, point, theta):
-        """
-        returns rotated copy of a polygon wrt to a given point and with a given angle
-        """
-        x = point[0] - rot_centre[0]
-        y = point[1] - rot_centre[1]
-        new_x = x*np.cos(theta) - y*np.sin(theta) + rot_centre[0]
-        new_y = x*np.sin(theta) + y*np.cos(theta) + rot_centre[1]
+def polyarea(polygon):
+    """
+    finds area of given convex polygon
+    """
+    area = 0
+    centre = polygon[0]
+    for i in range(len(polygon)-1):
+        area += cross_product(polygon[i], polygon[i+1], centre)
 
-        return (new_x, new_y)
+    return abs(area)
+
+
+def rot_coords(rot_centre, point, theta):
+    """
+    returns rotated copy of a polygon wrt to a given point and with a given angle
+    """
+    x = point[0] - rot_centre[0]
+    y = point[1] - rot_centre[1]
+    new_x = x*np.cos(theta) - y*np.sin(theta) + rot_centre[0]
+    new_y = x*np.sin(theta) + y*np.cos(theta) + rot_centre[1]
+
+    return (new_x, new_y)
+
 
 if __name__ == '__main__':
     py.init()  # initialising screen
     width, height = 800, 600
     screen = py.display.set_mode((width, height))
+
 
     # Initialising variables - MAKE CHANGES HERE
     angle_inc = 0.001  # angle increment
