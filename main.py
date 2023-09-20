@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import warnings
 
 
-# Points need to be presented clockwise or otherwise it won't work
+# Points need to be presented or otherwise it won't work
 class PolygonClipper:
 
     def __init__(self, warn_if_empty=True):
@@ -18,6 +18,7 @@ class PolygonClipper:
             return False
 
     def compute_intersection(self, p1, p2, p3, p4):
+
         """
         given points p1 and p2 on line L1, compute the equation of L1 in the
         format of y = m1 * x + b1. Also, given points p3 and p4 on line L2,
@@ -123,167 +124,162 @@ class PolygonClipper:
 
 # GitHub link for this function: https://github.com/mhdadk/sutherland-hodgman/blob/main/SH.py
 
+    def cross_product(point1, point2, ref):
+        """
+        Calculates cross product of two points in order w.r.t. to a reference point
+        """
+        x1, x2 = point1[0] - ref[0], point2[0] - ref[0]
+        y1, y2 = point1[1] - ref[1], point2[1] - ref[1]
 
-py.init()  # initialising screen
-width, height = 800, 600
-screen = py.display.set_mode((width, height))
-
-
-def cross_product(point1, point2, ref):
-    """
-    Calculates cross product of two points in order w.r.t. to a reference point
-    """
-    x1, x2 = point1[0] - ref[0], point2[0] - ref[0]
-    y1, y2 = point1[1] - ref[1], point2[1] - ref[1]
-
-    return x1*y2 - x2*y1
+        return x1*y2 - x2*y1
 
 
-def find_centre(polygon):
-    """
-    finds centroid of given convex polygon
-    """
-    centre = [0,0]
-    for i in range(len(polygon)):
-        centre += polygon[i]
+    def find_centre(polygon):
+        """
+        finds centroid of given convex polygon
+        """
+        centre = [0,0]
+        for i in range(len(polygon)):
+            centre += polygon[i]
 
-    centre[0], centre[1] = centre[0]/len(polygon), centre[1]/len(polygon)
+        centre[0], centre[1] = centre[0]/len(polygon), centre[1]/len(polygon)
 
-    return centre
-
-
-def polyarea(polygon):
-    """
-    finds area of given convex polygon
-    """
-    area = 0
-    centre = polygon[0]
-    for i in range(len(polygon)-1):
-        area += cross_product(polygon[i], polygon[i+1], centre)
-
-    return abs(area)
+        return centre
 
 
-def rot_coords(rot_centre, point, theta):
-    """
-    :param rot_centre:
-    :param point:
-    :param theta:
-    :return: returns rotated copy of a polygon wrt to a given point and with a given angle
-    """
-    x = point[0] - rot_centre[0]
-    y = point[1] - rot_centre[1]
-    new_x = x*np.cos(theta) - y*np.sin(theta) + rot_centre[0]
-    new_y = x*np.sin(theta) + y*np.cos(theta) + rot_centre[1]
+    def polyarea(polygon):
+        """
+        finds area of given convex polygon
+        """
+        area = 0
+        centre = polygon[0]
+        for i in range(len(polygon)-1):
+            area += cross_product(polygon[i], polygon[i+1], centre)
 
-    return (new_x, new_y)
+        return abs(area)
 
 
-# Initialising variables - MAKE CHANGES HERE
-angle_inc = 0.001  # angle increment
-draw_stage = True  # toggles between allowing user to enter polygons through lists or by clicking
+    def rot_coords(rot_centre, point, theta):
+        """
+        returns rotated copy of a polygon wrt to a given point and with a given angle
+        """
+        x = point[0] - rot_centre[0]
+        y = point[1] - rot_centre[1]
+        new_x = x*np.cos(theta) - y*np.sin(theta) + rot_centre[0]
+        new_y = x*np.sin(theta) + y*np.cos(theta) + rot_centre[1]
 
-# DON'T CHANGE THESE
-clip = PolygonClipper()  # setting up clip function
-taking_input = False  # tracks when the program is expecting more points from the user
-running = True # for the pygame loop
-polygon1, polygon2, poly_intersect, poly_copy, og_intersect, cur_intersect, vertex_clips, rot_centre, area_array = [], [], [], [], [], [], [], [], []
-# initialising the polygon and polygon intersection vertex lists
-angle = [0]  # stores the different angles increments
+        return (new_x, new_y)
+
+if __name__ == '__main__':
+    py.init()  # initialising screen
+    width, height = 800, 600
+    screen = py.display.set_mode((width, height))
+
+    # Initialising variables - MAKE CHANGES HERE
+    angle_inc = 0.001  # angle increment
+    draw_stage = True  # toggles between allowing user to enter polygons through lists or by clicking
+
+    # DON'T CHANGE THESE
+    clip = PolygonClipper()  # setting up clip function
+    taking_input = False  # tracks when the program is expecting more points from the user
+    running = True # for the pygame loop
+    polygon1, polygon2, poly_intersect, poly_copy, og_intersect, cur_intersect, vertex_clips, rot_centre, area_array = [], [], [], [], [], [], [], [], []
+    # initialising the polygon and polygon intersection vertex lists
+    angle = [0]  # stores the different angles increments
 
 
-# Can input hard-coded polygons if we want reproducibility of data
-if not draw_stage:
-    polygon1, polygon2 = [(178, 123), (174, 383), (408, 446), (651, 376)], [(315, 136), (177, 238), (152, 350), (319, 438), (592, 450), (641, 319), (672, 154), (582, 86)]
-    rot_centre = find_centre(clip(polygon1, polygon2))
-    poly_copy = polygon2.copy()
+    # Can input hard-coded polygons if we want reproducibility of data
+    if not draw_stage:
+        polygon1, polygon2 = [(178, 123), (174, 383), (408, 446), (651, 376)], [(315, 136), (177, 238), (152, 350), (319, 438), (592, 450), (641, 319), (672, 154), (582, 86)]
+        rot_centre = find_centre(clip(polygon1, polygon2))
+        poly_copy = polygon2.copy()
 
 
-while running:  # pygame loop
-    for event in py.event.get():
-        if event.type == py.QUIT:  # needed for proper exit
-            running = False
+    while running:  # pygame loop
+        for event in py.event.get():
+            if event.type == py.QUIT:  # needed for proper exit
+                running = False
 
-        if draw_stage:  # stage where key presses and mouse clicks are checked
-            if event.type == py.KEYDOWN:
-                if event.key == py.K_BACKSPACE:  # stops taking input for points
-                    draw_stage = False
+            if draw_stage:  # stage where key presses and mouse clicks are checked
+                if event.type == py.KEYDOWN:
+                    if event.key == py.K_BACKSPACE:  # stops taking input for points
+                        draw_stage = False
 
-                    find_rot_coord = True  # takes input for rotation centre of the second polygon
-                    while find_rot_coord:
-                        evt_list = py.event.get()
-                        for evt in evt_list:
-                            if evt.type == py.MOUSEBUTTONDOWN:
-                                rot_centre = (int(evt.pos[0]), int(evt.pos[1]))  # rotation center set
-                                find_rot_coord = False
-                                break
+                        find_rot_coord = True  # takes input for rotation centre of the second polygon
+                        while find_rot_coord:
+                            evt_list = py.event.get()
+                            for evt in evt_list:
+                                if evt.type == py.MOUSEBUTTONDOWN:
+                                    rot_centre = (int(evt.pos[0]), int(evt.pos[1]))  # rotation center set
+                                    find_rot_coord = False
+                                    break
 
-                elif event.key == py.K_ESCAPE: # removes last point entered in polygon
-                    if len(polygon1) > 0:
-                        polygon1.pop()
-                elif event.key == py.K_BACKSLASH:  # switching from taking inputs for first to second polygon
-                    polygon2 = polygon1.copy()
-                    poly_copy = polygon1.copy()
-                    polygon1 = []
+                    elif event.key == py.K_ESCAPE: # removes last point entered in polygon
+                        if len(polygon1) > 0:
+                            polygon1.pop()
+                    elif event.key == py.K_BACKSLASH:  # switching from taking inputs for first to second polygon
+                        polygon2 = polygon1.copy()
+                        poly_copy = polygon1.copy()
+                        polygon1 = []
+                        taking_input = False
+
+                elif event.type == py.MOUSEBUTTONDOWN:
+                    polygon1.append((int(event.pos[0]), int(event.pos[1])))
+                    taking_input = True
+                    if len(polygon1) > 2:  # ensuring a convex polygon is entered in clockwise order
+                        if cross_product(polygon1[-1], polygon1[-3], polygon1[-2]) >= 0:
+                            polygon1.pop()
+                        elif cross_product(polygon1[1], polygon1[-1], polygon1[0]) >= 0:
+                            polygon1.pop()
+                        elif cross_product(polygon1[0], polygon1[-2], polygon1[-1]) >= 0:
+                            polygon1.pop()
+
+                elif event.type == py.MOUSEBUTTONUP:  # stops taking input after mouse is released
                     taking_input = False
 
-            elif event.type == py.MOUSEBUTTONDOWN:
-                polygon1.append((int(event.pos[0]), int(event.pos[1])))
-                taking_input = True
-                if len(polygon1) > 2:  # ensuring a convex polygon is entered in clockwise order
-                    if cross_product(polygon1[-1], polygon1[-3], polygon1[-2]) >= 0:
-                        polygon1.pop()
-                    elif cross_product(polygon1[1], polygon1[-1], polygon1[0]) >= 0:
-                        polygon1.pop()
-                    elif cross_product(polygon1[0], polygon1[-2], polygon1[-1]) >= 0:
-                        polygon1.pop()
+                elif event.type == py.MOUSEMOTION and taking_input:  # makes end of line follow the mouse cursor
+                    polygon1[-1] = (int(event.pos[0]), int(event.pos[1]))
 
-            elif event.type == py.MOUSEBUTTONUP:  # stops taking input after mouse is released
-                taking_input = False
+        screen.fill("black")
+        if len(polygon1) > 1:
+            py.draw.lines(screen, "red", True, polygon1, 3)
+        if len(polygon2) > 1:
+            py.draw.lines(screen, "green", True, polygon2, 3)
 
-            elif event.type == py.MOUSEMOTION and taking_input:  # makes end of line follow the mouse cursor
-                polygon1[-1] = (int(event.pos[0]), int(event.pos[1]))
+        if not draw_stage:  # Only runs when inputting has finished
+            for i in range(len(polygon2)):  # rotating the polygon by angle increment
+                polygon2[i] = rot_coords(rot_centre, poly_copy[i], angle[-1] + angle_inc)
 
-    screen.fill("black")
-    if len(polygon1) > 1:
-        py.draw.lines(screen, "red", True, polygon1, 3)
-    if len(polygon2) > 1:
-        py.draw.lines(screen, "green", True, polygon2, 3)
+            cmp_length = len(cur_intersect) # stores number of sides of old intersection polygon
+            cur_intersect = clip(polygon1, polygon2) # Finding new intersection polygon
+            py.draw.polygon(screen, "yellow", cur_intersect)  # Drawing Intersection Polygon
+            py.draw.circle(screen, "blue", rot_centre, 3)  # Drawing rotation centre
 
-    if not draw_stage:  # Only runs when inputting has finished
-        for i in range(len(polygon2)):  # rotating the polygon by angle increment
-            polygon2[i] = rot_coords(rot_centre, poly_copy[i], angle[-1] + angle_inc)
+            # calculating intersection area for one full rotation and storing it in a list
+            if angle[-1] <= 2*np.pi:
+                if cmp_length != len(cur_intersect):  # If the number of sides of the intersection polygon changes
+                    vertex_clips.append(angle[-1])
 
-        cmp_length = len(cur_intersect) # stores number of sides of old intersection polygon
-        cur_intersect = clip(polygon1, polygon2) # Finding new intersection polygon
-        py.draw.polygon(screen, "yellow", cur_intersect)  # Drawing Intersection Polygon
-        py.draw.circle(screen, "blue", rot_centre, 3)  # Drawing rotation centre
+                ar = polyarea(cur_intersect)
+                area_array.append(ar)  # stores area of each intersection in an array
+                angle.append(angle[-1] + angle_inc)
 
-        # calculating intersection area for one full rotation and storing it in a list
-        if angle[-1] <= 2*np.pi:
-            if cmp_length != len(cur_intersect):  # If the number of sides of the intersection polygon changes
-                vertex_clips.append(angle[-1])
+        py.display.flip()
 
-            ar = polyarea(cur_intersect)
-            area_array.append(ar)  # stores area of each intersection in an array
-            angle.append(angle[-1] + angle_inc)
-
-    py.display.flip()
-
-py.quit()
+    py.quit()
 
 
-# plotting the intersection curve for different angles
-angle.pop()
-plt.xlabel("Angle (in radians)")
-plt.ylabel("Intersection Area")
-plt.plot(angle, area_array)
+    # plotting the intersection curve for different angles
+    angle.pop()
+    plt.xlabel("Angle (in radians)")
+    plt.ylabel("Intersection Area")
+    plt.plot(angle, area_array)
 
-# plots vertical lines on angles where a point of one polygon intersects an edge or a point of another polygon
-# between two vertical lines, the function will be continuous and differentiable
-min_area, max_area = min(area_array), max(area_array)
-plt.vlines(x=vertex_clips, ymin=min_area, ymax=max_area, color="red", linestyles=":")
-plt.show()
+    # plots vertical lines on angles where a point of one polygon intersects an edge or a point of another polygon
+    # between two vertical lines, the function will be continuous and differentiable
+    min_area, max_area = min(area_array), max(area_array)
+    plt.vlines(x=vertex_clips, ymin=min_area, ymax=max_area, color="red", linestyles=":")
+    plt.show()
 
-#prints out the coordinates of the polygons entered in case we want to save them for later use
-print(polygon1, poly_copy, rot_centre)
+    #prints out the coordinates of the polygons entered in case we want to save them for later use
+    print(polygon1, poly_copy, rot_centre)
